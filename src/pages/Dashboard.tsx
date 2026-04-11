@@ -13,6 +13,9 @@ import Analysis from "@/pages/Analysis";
 import TradeNotes from "@/pages/TradeNotes";
 import News from "@/pages/News";
 import WalletPage from "@/pages/WalletPage";
+import Community from "@/pages/Community";
+import ProfileSettings from "@/pages/ProfileSettings";
+import MarketChart from "@/pages/MarketChart";
 
 const DashboardHome = () => (
   <>
@@ -47,6 +50,9 @@ const Dashboard = () => (
         <Route path="notes" element={<TradeNotes />} />
         <Route path="news" element={<News />} />
         <Route path="wallet" element={<WalletPage />} />
+        <Route path="community" element={<Community />} />
+        <Route path="settings" element={<ProfileSettings />} />
+        <Route path="chart" element={<MarketChart />} />
       </Routes>
     </div>
   </div>
