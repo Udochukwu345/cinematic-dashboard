@@ -1,8 +1,8 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, ArrowDown, ArrowUp, RefreshCw, Wallet, ExternalLink, CheckCircle, XCircle, Link2, Copy, Globe } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowUpRight, ArrowDown, ArrowUp, RefreshCw, Wallet, ExternalLink, CheckCircle, XCircle, Link2, Copy, Globe, Download } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useWalletConnectors, SUPPORTED_WALLETS } from "@/hooks/useWalletConnectors";
+import { useWalletConnectors, SUPPORTED_WALLETS, isWalletInstalled as checkInstalled } from "@/hooks/useWalletConnectors";
 
 const balances = [
   { asset: "Bitcoin", symbol: "BTC", balance: "1.2400", value: "$84,845", icon: "₿", color: "hsl(36 100% 50%)" },
@@ -55,111 +55,120 @@ const WalletPage = () => {
       </motion.div>
 
       {/* Connect Wallet Panel */}
-      <AnimatePresence>
-        {showConnect && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="glass-card p-4 md:p-5">
-              <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
-                <Wallet className="w-4 h-4 text-primary" /> Connect a Wallet
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {SUPPORTED_WALLETS.map((wallet, i) => {
-                  const connected = getConnectedWallet(wallet.id);
-                  const isConnecting = connecting === wallet.id;
-                  return (
-                    <motion.div
-                      key={wallet.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className={`relative border rounded-xl p-4 transition-all ${
-                        connected
-                          ? "border-primary/40 bg-primary/5"
-                          : "border-border bg-secondary/20 hover:border-primary/20 hover:bg-secondary/40"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
-                            style={{ background: `${wallet.color}15` }}
-                          >
-                            {wallet.icon}
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-foreground">{wallet.name}</p>
-                            <p className="text-xs text-muted-foreground">{wallet.description}</p>
-                          </div>
+      {showConnect && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="glass-card p-4 md:p-5">
+            <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Wallet className="w-4 h-4 text-primary" /> Connect a Wallet
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {SUPPORTED_WALLETS.map((wallet, i) => {
+                const connected = getConnectedWallet(wallet.id);
+                const isConnecting = connecting === wallet.id;
+                const installed = checkInstalled(wallet);
+                return (
+                  <motion.div
+                    key={wallet.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className={`relative border rounded-xl p-4 transition-all ${
+                      connected
+                        ? "border-primary/40 bg-primary/5"
+                        : "border-border bg-secondary/20 hover:border-primary/20 hover:bg-secondary/40"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+                          style={{ background: `${wallet.color}15` }}
+                        >
+                          {wallet.icon}
                         </div>
-                        {connected && <CheckCircle className="w-5 h-5 text-green-400 shrink-0" />}
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">{wallet.name}</p>
+                          <p className="text-xs text-muted-foreground">{wallet.description}</p>
+                        </div>
                       </div>
+                      {connected && <CheckCircle className="w-5 h-5 text-green-400 shrink-0" />}
+                      {!connected && !installed && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Not installed</span>
+                      )}
+                    </div>
 
-                      {/* Connected address */}
+                    {/* Connected address */}
+                    {connected && (
+                      <div className="mb-3 flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-secondary/40 border border-border/50">
+                        <Globe className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                        <span className="text-xs font-mono text-muted-foreground truncate">
+                          {connected.address.slice(0, 8)}...{connected.address.slice(-6)}
+                        </span>
+                        <button
+                          onClick={() => copyAddress(connected.address)}
+                          className="ml-auto shrink-0 p-1 rounded hover:bg-secondary/60 transition-colors"
+                        >
+                          <Copy className="w-3 h-3 text-muted-foreground" />
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {wallet.chains.map((chain) => (
+                        <span key={chain} className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/60 text-muted-foreground font-medium">
+                          {chain}
+                        </span>
+                      ))}
                       {connected && (
-                        <div className="mb-3 flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-secondary/40 border border-border/50">
-                          <Globe className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                          <span className="text-xs font-mono text-muted-foreground truncate">
-                            {connected.address.slice(0, 8)}...{connected.address.slice(-6)}
-                          </span>
-                          <button
-                            onClick={() => copyAddress(connected.address)}
-                            className="ml-auto shrink-0 p-1 rounded hover:bg-secondary/60 transition-colors"
-                          >
-                            <Copy className="w-3 h-3 text-muted-foreground" />
-                          </button>
-                        </div>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-400/10 text-green-400 font-medium">
+                          ● {connected.chain}
+                        </span>
                       )}
+                    </div>
 
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {wallet.chains.map((chain) => (
-                          <span key={chain} className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/60 text-muted-foreground font-medium">
-                            {chain}
-                          </span>
-                        ))}
-                        {connected && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-400/10 text-green-400 font-medium">
-                            {connected.chain}
-                          </span>
+                    {connected ? (
+                      <button
+                        onClick={() => disconnect(wallet.id)}
+                        className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-red-400/30 text-red-400 text-xs font-medium hover:bg-red-400/10 transition-colors"
+                      >
+                        <XCircle className="w-3.5 h-3.5" /> Disconnect
+                      </button>
+                    ) : !installed ? (
+                      <a
+                        href={wallet.downloadUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-secondary/60 text-muted-foreground text-xs font-medium hover:bg-secondary/80 transition-colors"
+                      >
+                        <Download className="w-3.5 h-3.5" /> Install {wallet.name}
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => connect(wallet.id)}
+                        disabled={isConnecting}
+                        className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"
+                      >
+                        {isConnecting ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Connecting...
+                          </>
+                        ) : (
+                          <>
+                            <ExternalLink className="w-3.5 h-3.5" /> Connect
+                          </>
                         )}
-                      </div>
-
-                      {connected ? (
-                        <button
-                          onClick={() => disconnect(wallet.id)}
-                          className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-red-400/30 text-red-400 text-xs font-medium hover:bg-red-400/10 transition-colors"
-                        >
-                          <XCircle className="w-3.5 h-3.5" /> Disconnect
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => connect(wallet.id)}
-                          disabled={isConnecting}
-                          className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"
-                        >
-                          {isConnecting ? (
-                            <>
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Connecting...
-                            </>
-                          ) : (
-                            <>
-                              <ExternalLink className="w-3.5 h-3.5" /> Connect
-                            </>
-                          )}
-                        </button>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </div>
+                      </button>
+                    )}
+                  </motion.div>
+                );
+              })}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </motion.div>
+      )}
 
       {/* Connected Wallets Summary */}
       {connectedWallets.length > 0 && !showConnect && (
