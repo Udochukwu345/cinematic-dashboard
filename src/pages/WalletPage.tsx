@@ -1,50 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, ArrowDown, ArrowUp, RefreshCw, Wallet, ExternalLink, CheckCircle, XCircle, Link2 } from "lucide-react";
+import { ArrowUpRight, ArrowDown, ArrowUp, RefreshCw, Wallet, ExternalLink, CheckCircle, XCircle, Link2, Copy, Globe } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-
-const wallets = [
-  {
-    id: "solflare",
-    name: "Solflare",
-    icon: "🔥",
-    color: "hsl(25 95% 55%)",
-    description: "Solana's leading wallet",
-    chains: ["Solana"],
-  },
-  {
-    id: "bitget",
-    name: "Bitget Wallet",
-    icon: "⚡",
-    color: "hsl(210 80% 55%)",
-    description: "Multi-chain DeFi wallet",
-    chains: ["ETH", "BSC", "Solana", "Polygon"],
-  },
-  {
-    id: "metamask",
-    name: "MetaMask",
-    icon: "🦊",
-    color: "hsl(30 90% 50%)",
-    description: "Popular Ethereum wallet",
-    chains: ["ETH", "Polygon", "Arbitrum", "BSC"],
-  },
-  {
-    id: "phantom",
-    name: "Phantom",
-    icon: "👻",
-    color: "hsl(270 70% 60%)",
-    description: "Multi-chain crypto wallet",
-    chains: ["Solana", "ETH", "Polygon"],
-  },
-  {
-    id: "trustwallet",
-    name: "Trust Wallet",
-    icon: "🛡️",
-    color: "hsl(210 70% 50%)",
-    description: "Secure multi-chain wallet",
-    chains: ["ETH", "BSC", "Solana", "BTC"],
-  },
-];
+import { useWalletConnectors, SUPPORTED_WALLETS } from "@/hooks/useWalletConnectors";
 
 const balances = [
   { asset: "Bitcoin", symbol: "BTC", balance: "1.2400", value: "$84,845", icon: "₿", color: "hsl(36 100% 50%)" },
@@ -72,24 +30,12 @@ const typeBg = (t: string) =>
   "bg-blue-400/10";
 
 const WalletPage = () => {
-  const [connectedWallets, setConnectedWallets] = useState<string[]>([]);
-  const [connecting, setConnecting] = useState<string | null>(null);
+  const { connectedWallets, connecting, connect, disconnect, getConnectedWallet } = useWalletConnectors();
   const [showConnect, setShowConnect] = useState(false);
 
-  const handleConnect = async (walletId: string) => {
-    setConnecting(walletId);
-    // Simulate connection
-    await new Promise((r) => setTimeout(r, 1500));
-    setConnectedWallets((prev) => [...prev, walletId]);
-    setConnecting(null);
-    const wallet = wallets.find((w) => w.id === walletId);
-    toast.success(`${wallet?.name} connected successfully!`);
-  };
-
-  const handleDisconnect = (walletId: string) => {
-    setConnectedWallets((prev) => prev.filter((id) => id !== walletId));
-    const wallet = wallets.find((w) => w.id === walletId);
-    toast.info(`${wallet?.name} disconnected`);
+  const copyAddress = (address: string) => {
+    navigator.clipboard.writeText(address);
+    toast.success("Address copied to clipboard");
   };
 
   return (
@@ -122,8 +68,8 @@ const WalletPage = () => {
                 <Wallet className="w-4 h-4 text-primary" /> Connect a Wallet
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {wallets.map((wallet, i) => {
-                  const isConnected = connectedWallets.includes(wallet.id);
+                {SUPPORTED_WALLETS.map((wallet, i) => {
+                  const connected = getConnectedWallet(wallet.id);
                   const isConnecting = connecting === wallet.id;
                   return (
                     <motion.div
@@ -132,7 +78,7 @@ const WalletPage = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
                       className={`relative border rounded-xl p-4 transition-all ${
-                        isConnected
+                        connected
                           ? "border-primary/40 bg-primary/5"
                           : "border-border bg-secondary/20 hover:border-primary/20 hover:bg-secondary/40"
                       }`}
@@ -150,25 +96,48 @@ const WalletPage = () => {
                             <p className="text-xs text-muted-foreground">{wallet.description}</p>
                           </div>
                         </div>
-                        {isConnected && <CheckCircle className="w-5 h-5 text-green-400 shrink-0" />}
+                        {connected && <CheckCircle className="w-5 h-5 text-green-400 shrink-0" />}
                       </div>
+
+                      {/* Connected address */}
+                      {connected && (
+                        <div className="mb-3 flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-secondary/40 border border-border/50">
+                          <Globe className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                          <span className="text-xs font-mono text-muted-foreground truncate">
+                            {connected.address.slice(0, 8)}...{connected.address.slice(-6)}
+                          </span>
+                          <button
+                            onClick={() => copyAddress(connected.address)}
+                            className="ml-auto shrink-0 p-1 rounded hover:bg-secondary/60 transition-colors"
+                          >
+                            <Copy className="w-3 h-3 text-muted-foreground" />
+                          </button>
+                        </div>
+                      )}
+
                       <div className="flex flex-wrap gap-1 mb-3">
                         {wallet.chains.map((chain) => (
                           <span key={chain} className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/60 text-muted-foreground font-medium">
                             {chain}
                           </span>
                         ))}
+                        {connected && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-400/10 text-green-400 font-medium">
+                            {connected.chain}
+                          </span>
+                        )}
                       </div>
-                      {isConnected ? (
+
+                      {connected ? (
                         <button
-                          onClick={() => handleDisconnect(wallet.id)}
+                          onClick={() => disconnect(wallet.id)}
                           className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-red-400/30 text-red-400 text-xs font-medium hover:bg-red-400/10 transition-colors"
                         >
                           <XCircle className="w-3.5 h-3.5" /> Disconnect
                         </button>
                       ) : (
                         <button
-                          onClick={() => handleConnect(wallet.id)}
+                          onClick={() => connect(wallet.id)}
                           disabled={isConnecting}
                           className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"
                         >
@@ -191,6 +160,30 @@ const WalletPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Connected Wallets Summary */}
+      {connectedWallets.length > 0 && !showConnect && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card p-4">
+          <h2 className="text-sm font-semibold text-foreground mb-3">Connected Wallets</h2>
+          <div className="flex flex-wrap gap-2">
+            {connectedWallets.map((cw) => {
+              const wallet = SUPPORTED_WALLETS.find((w) => w.id === cw.id);
+              return (
+                <div key={cw.id} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/5 border border-primary/20">
+                  <span className="text-sm">{wallet?.icon}</span>
+                  <span className="text-xs font-medium text-foreground">{wallet?.name}</span>
+                  <span className="text-[10px] font-mono text-muted-foreground">
+                    {cw.address.slice(0, 4)}...{cw.address.slice(-4)}
+                  </span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-400/10 text-green-400">
+                    {cw.chain}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
 
       {/* Total Balance */}
       <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="glass-card p-5 md:p-6">
