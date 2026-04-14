@@ -237,7 +237,9 @@ export function useWalletConnectors() {
         if (!provider) throw new Error(`${wallet.name} provider not found`);
 
         const resp = await provider.connect();
-        const address = resp.publicKey.toString();
+        const pubKey = resp?.publicKey ?? provider.publicKey;
+        if (!pubKey) throw new Error("No public key returned. Please try again.");
+        const address = pubKey.toString();
 
         setConnectedWallets((prev) => [
           ...prev.filter((w) => w.id !== walletId),
