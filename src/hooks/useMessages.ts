@@ -8,6 +8,10 @@ export interface Profile {
   avatar_url: string | null;
 }
 
+export interface Participant extends Profile {
+  is_admin: boolean;
+}
+
 export interface Message {
   id: string;
   conversation_id: string;
@@ -28,7 +32,7 @@ export interface Conversation {
   created_at: string;
   updated_at: string;
   last_message?: Message | null;
-  participants?: Profile[];
+  participants?: Participant[];
 }
 
 export function useConversations() {
@@ -50,19 +54,23 @@ export function useConversations() {
       return;
     }
 
-    // Fetch participants and last message for each
     const enriched = await Promise.all(
       convos.map(async (c: any) => {
         const { data: parts } = await supabase
           .from("conversation_participants")
-          .select("user_id")
+          .select("user_id, is_admin")
           .eq("conversation_id", c.id);
 
         const userIds = parts?.map((p: any) => p.user_id) || [];
         const { data: profiles } = await supabase
           .from("profiles")
           .select("user_id, display_name, avatar_url")
-          .in("user_id", userIds);
+          .in("user_id", userIds.length > 0 ? userIds : ["__none__"]);
+
+        const participants: Participant[] = (profiles || []).map((prof: any) => {
+          const part = parts?.find((p: any) => p.user_id === prof.user_id);
+          return { ...prof, is_admin: part?.is_admin || false };
+        });
 
         const { data: msgs } = await supabase
           .from("messages")
@@ -73,7 +81,7 @@ export function useConversations() {
 
         return {
           ...c,
-          participants: profiles || [],
+          participants,
           last_message: msgs?.[0] || null,
         } as Conversation;
       })
@@ -87,7 +95,6 @@ export function useConversations() {
     fetchConversations();
   }, [fetchConversations]);
 
-  // Realtime subscription for conversation updates
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -120,12 +127,11 @@ export function useMessages(conversationId: string | null) {
       .order("created_at", { ascending: true });
 
     if (!error && data) {
-      // Fetch sender profiles
       const senderIds = [...new Set(data.map((m: any) => m.sender_id))];
       const { data: profs } = await supabase
         .from("profiles")
         .select("user_id, display_name, avatar_url")
-        .in("user_id", senderIds);
+        .in("user_id", senderIds.length > 0 ? senderIds : ["__none__"]);
 
       const profMap = new Map<string, Profile>();
       profs?.forEach((p: any) => profMap.set(p.user_id, p));
@@ -142,7 +148,6 @@ export function useMessages(conversationId: string | null) {
     fetchMessages();
   }, [fetchMessages]);
 
-  // Realtime for new messages
   useEffect(() => {
     if (!conversationId) return;
 
@@ -185,7 +190,6 @@ export function useMessages(conversationId: string | null) {
         media_url: mediaUrl || null,
       });
 
-      // Update conversation timestamp
       await supabase
         .from("conversations")
         .update({ updated_at: new Date().toISOString() })
@@ -222,7 +226,6 @@ export function useCreateConversation() {
     async (otherUserId: string): Promise<string | null> => {
       if (!user) return null;
 
-      // Check if DM already exists
       const { data: myConvos } = await supabase
         .from("conversation_participants")
         .select("conversation_id")
@@ -251,7 +254,6 @@ export function useCreateConversation() {
         }
       }
 
-      // Create new conversation
       const { data: conv, error } = await supabase
         .from("conversations")
         .insert({ is_group: false, created_by: user.id })
@@ -282,10 +284,14 @@ export function useCreateConversation() {
 
       if (error || !conv) return null;
 
-      const participants = [user.id, ...memberIds].map((uid) => ({
-        conversation_id: conv.id,
-        user_id: uid,
-      }));
+      const participants = [
+        { conversation_id: conv.id, user_id: user.id, is_admin: true },
+        ...memberIds.map((uid) => ({
+          conversation_id: conv.id,
+          user_id: uid,
+          is_admin: false,
+        })),
+      ];
 
       await supabase.from("conversation_participants").insert(participants);
 
@@ -295,6 +301,71 @@ export function useCreateConversation() {
   );
 
   return { createDM, createGroup };
+}
+
+export function useGroupAdmin(conversationId: string | null) {
+  const { user } = useAuth();
+
+  const addMember = useCallback(
+    async (userId: string) => {
+      if (!conversationId) return false;
+      const { error } = await supabase.from("conversation_participants").insert({
+        conversation_id: conversationId,
+        user_id: userId,
+        is_admin: false,
+      });
+      return !error;
+    },
+    [conversationId]
+  );
+
+  const removeMember = useCallback(
+    async (userId: string) => {
+      if (!conversationId) return false;
+      const { error } = await supabase
+        .from("conversation_participants")
+        .delete()
+        .eq("conversation_id", conversationId)
+        .eq("user_id", userId);
+      return !error;
+    },
+    [conversationId]
+  );
+
+  const toggleAdmin = useCallback(
+    async (userId: string, makeAdmin: boolean) => {
+      if (!conversationId) return false;
+      const { error } = await supabase
+        .from("conversation_participants")
+        .update({ is_admin: makeAdmin })
+        .eq("conversation_id", conversationId)
+        .eq("user_id", userId);
+      return !error;
+    },
+    [conversationId]
+  );
+
+  const renameGroup = useCallback(
+    async (newName: string) => {
+      if (!conversationId) return false;
+      const { error } = await supabase
+        .from("conversations")
+        .update({ name: newName })
+        .eq("id", conversationId);
+      return !error;
+    },
+    [conversationId]
+  );
+
+  const isCurrentUserAdmin = useCallback(
+    (participants: Participant[] | undefined) => {
+      if (!user || !participants) return false;
+      return participants.find((p) => p.user_id === user.id)?.is_admin || false;
+    },
+    [user]
+  );
+
+  return { addMember, removeMember, toggleAdmin, renameGroup, isCurrentUserAdmin };
 }
 
 export function useAllUsers() {

@@ -18,18 +18,21 @@ export type Database = {
         Row: {
           conversation_id: string
           id: string
+          is_admin: boolean
           joined_at: string
           user_id: string
         }
         Insert: {
           conversation_id: string
           id?: string
+          is_admin?: boolean
           joined_at?: string
           user_id: string
         }
         Update: {
           conversation_id?: string
           id?: string
+          is_admin?: boolean
           joined_at?: string
           user_id?: string
         }
