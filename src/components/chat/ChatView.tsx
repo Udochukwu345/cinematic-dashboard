@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Send, Paperclip, Image as ImageIcon, Video, Smile, MoreVertical, Check, CheckCheck } from "lucide-react";
+import { ArrowLeft, Send, Paperclip, BarChart3, Image as ImageIcon, Video, MoreVertical, CheckCheck } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, useMessages, Conversation, Profile } from "@/hooks/useMessages";
@@ -32,8 +32,10 @@ const ChatView = ({ conversation, onBack }: Props) => {
   const { messages, loading, sendMessage, uploadMedia } = useMessages(conversation?.id || null);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const chartInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -56,7 +58,7 @@ const ChatView = ({ conversation, onBack }: Props) => {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, forceType?: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -73,14 +75,17 @@ const ChatView = ({ conversation, onBack }: Props) => {
     }
 
     setSending(true);
+    setShowAttachMenu(false);
     const url = await uploadMedia(file);
     if (url) {
-      await sendMessage("", isImage ? "image" : "video", url);
+      const type = forceType || (isImage ? "image" : "video");
+      await sendMessage("", type, url);
     } else {
       toast.error("Failed to upload file");
     }
     setSending(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    if (chartInputRef.current) chartInputRef.current.value = "";
   };
 
   const handleTextareaInput = () => {
@@ -106,7 +111,6 @@ const ChatView = ({ conversation, onBack }: Props) => {
   const chatName = conversation.name || otherUser?.display_name || "Chat";
   const chatAvatar = chatName.charAt(0).toUpperCase();
 
-  // Group messages by date
   let lastDate = "";
 
   return (
@@ -151,7 +155,6 @@ const ChatView = ({ conversation, onBack }: Props) => {
             const showDate = msgDate !== lastDate;
             if (showDate) lastDate = msgDate;
 
-            // Check if same sender as previous for grouping
             const prevMsg = messages[i - 1];
             const sameSender = prevMsg?.sender_id === msg.sender_id;
             const sameMinute = prevMsg && Math.abs(new Date(msg.created_at).getTime() - new Date(prevMsg.created_at).getTime()) < 60000;
@@ -173,7 +176,6 @@ const ChatView = ({ conversation, onBack }: Props) => {
                   className={`flex ${isMe ? "justify-end" : "justify-start"} ${grouped ? "mt-0.5" : "mt-2"}`}
                 >
                   <div className={`max-w-[80%] md:max-w-[65%] ${isMe ? "items-end" : "items-start"}`}>
-                    {/* Sender name for group chats */}
                     {!isMe && conversation.is_group && !grouped && (
                       <p className="text-[10px] font-semibold text-primary ml-2 mb-0.5">
                         {msg.sender?.display_name || "User"}
@@ -186,14 +188,22 @@ const ChatView = ({ conversation, onBack }: Props) => {
                           : "bg-secondary/80 text-foreground rounded-2xl rounded-bl-md"
                       }`}
                     >
-                      {msg.message_type === "image" && msg.media_url && (
-                        <img
-                          src={msg.media_url}
-                          alt="Shared image"
-                          className="rounded-lg max-w-full max-h-64 object-cover mb-1 cursor-pointer"
-                          loading="lazy"
-                          onClick={() => window.open(msg.media_url!, "_blank")}
-                        />
+                      {(msg.message_type === "image" || msg.message_type === "chart") && msg.media_url && (
+                        <div className="relative">
+                          {msg.message_type === "chart" && (
+                            <div className="flex items-center gap-1 mb-1">
+                              <BarChart3 className="w-3.5 h-3.5" />
+                              <span className="text-[10px] font-semibold uppercase">Chart</span>
+                            </div>
+                          )}
+                          <img
+                            src={msg.media_url}
+                            alt={msg.message_type === "chart" ? "Shared chart" : "Shared image"}
+                            className="rounded-lg max-w-full max-h-64 object-cover mb-1 cursor-pointer"
+                            loading="lazy"
+                            onClick={() => window.open(msg.media_url!, "_blank")}
+                          />
+                        </div>
                       )}
                       {msg.message_type === "video" && msg.media_url && (
                         <video
@@ -211,7 +221,7 @@ const ChatView = ({ conversation, onBack }: Props) => {
                         <span className={`text-[9px] ${isMe ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
                           {formatMsgTime(msg.created_at)}
                         </span>
-                        {isMe && <CheckCheck className={`w-3 h-3 ${isMe ? "text-primary-foreground/60" : "text-muted-foreground"}`} />}
+                        {isMe && <CheckCheck className={`w-3 h-3 text-primary-foreground/60`} />}
                       </div>
                     </div>
                   </div>
@@ -223,12 +233,40 @@ const ChatView = ({ conversation, onBack }: Props) => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Attach Menu */}
+      {showAttachMenu && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="px-3 pb-1 flex gap-2"
+        >
+          <button
+            onClick={() => { fileInputRef.current?.setAttribute("accept", "image/*"); fileInputRef.current?.click(); }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary/80 text-foreground text-xs font-medium hover:bg-secondary transition-colors"
+          >
+            <ImageIcon className="w-4 h-4 text-primary" /> Image
+          </button>
+          <button
+            onClick={() => { fileInputRef.current?.setAttribute("accept", "video/*"); fileInputRef.current?.click(); }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary/80 text-foreground text-xs font-medium hover:bg-secondary transition-colors"
+          >
+            <Video className="w-4 h-4 text-chart-green" /> Video
+          </button>
+          <button
+            onClick={() => chartInputRef.current?.click()}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary/80 text-foreground text-xs font-medium hover:bg-secondary transition-colors"
+          >
+            <BarChart3 className="w-4 h-4 text-chart-amber" /> Chart
+          </button>
+        </motion.div>
+      )}
+
       {/* Input Bar */}
       <div className="px-3 py-2 border-t border-border bg-card/50 backdrop-blur-sm">
         <div className="flex items-end gap-2">
           <button
-            onClick={() => fileInputRef.current?.click()}
-            className="p-2.5 rounded-full hover:bg-secondary/60 transition-colors shrink-0 mb-0.5"
+            onClick={() => setShowAttachMenu(!showAttachMenu)}
+            className={`p-2.5 rounded-full hover:bg-secondary/60 transition-colors shrink-0 mb-0.5 ${showAttachMenu ? "bg-secondary/60" : ""}`}
           >
             <Paperclip className="w-5 h-5 text-muted-foreground" />
           </button>
@@ -237,13 +275,21 @@ const ChatView = ({ conversation, onBack }: Props) => {
             type="file"
             accept="image/*,video/*"
             className="hidden"
-            onChange={handleFileUpload}
+            onChange={(e) => handleFileUpload(e)}
+          />
+          <input
+            ref={chartInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFileUpload(e, "chart")}
           />
           <textarea
             ref={textareaRef}
             value={text}
             onChange={(e) => { setText(e.target.value); handleTextareaInput(); }}
             onKeyDown={handleKeyDown}
+            onFocus={() => setShowAttachMenu(false)}
             placeholder="Message..."
             rows={1}
             className="flex-1 bg-secondary/50 border border-border rounded-2xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary max-h-[120px]"
