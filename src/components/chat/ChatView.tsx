@@ -1,9 +1,11 @@
-import { motion } from "framer-motion";
-import { ArrowLeft, Send, Paperclip, BarChart3, Image as ImageIcon, Video, MoreVertical, CheckCheck } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Send, Paperclip, BarChart3, Image as ImageIcon, Video, MoreVertical, CheckCheck, Settings, X } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Message, useMessages, Conversation, Profile } from "@/hooks/useMessages";
+import { useConversations } from "@/hooks/useMessages";
 import { toast } from "sonner";
+import GroupAdminPanel from "./GroupAdminPanel";
 
 interface Props {
   conversation: Conversation | null;
@@ -30,9 +32,12 @@ function getOtherParticipant(conv: Conversation | null, userId: string): Profile
 const ChatView = ({ conversation, onBack }: Props) => {
   const { user } = useAuth();
   const { messages, loading, sendMessage, uploadMedia } = useMessages(conversation?.id || null);
+  const { refetch: refetchConversations } = useConversations();
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [previewMedia, setPreviewMedia] = useState<{ url: string; type: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chartInputRef = useRef<HTMLInputElement>(null);
@@ -41,6 +46,10 @@ const ChatView = ({ conversation, onBack }: Props) => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    setShowAdminPanel(false);
+  }, [conversation?.id]);
 
   const handleSend = async () => {
     if (!text.trim() || sending) return;
@@ -114,7 +123,54 @@ const ChatView = ({ conversation, onBack }: Props) => {
   let lastDate = "";
 
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex-1 flex flex-col h-full relative">
+      {/* Admin Panel Overlay */}
+      <AnimatePresence>
+        {showAdminPanel && conversation.is_group && (
+          <GroupAdminPanel
+            conversation={conversation}
+            onClose={() => setShowAdminPanel(false)}
+            onRefresh={() => refetchConversations()}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Media Preview Lightbox */}
+      <AnimatePresence>
+        {previewMedia && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/90 z-30 flex items-center justify-center"
+            onClick={() => setPreviewMedia(null)}
+          >
+            <button
+              onClick={() => setPreviewMedia(null)}
+              className="absolute top-3 right-3 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+            {previewMedia.type === "video" ? (
+              <video
+                src={previewMedia.url}
+                controls
+                autoPlay
+                className="max-w-[90%] max-h-[90%] rounded-xl"
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <img
+                src={previewMedia.url}
+                alt="Full preview"
+                className="max-w-[90%] max-h-[90%] object-contain rounded-xl"
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="px-3 py-2.5 border-b border-border flex items-center gap-3 bg-card/50 backdrop-blur-sm">
         <button onClick={onBack} className="p-1.5 rounded-lg hover:bg-secondary/60 transition-colors md:hidden">
@@ -133,6 +189,15 @@ const ChatView = ({ conversation, onBack }: Props) => {
               : "Online"}
           </p>
         </div>
+        {conversation.is_group && (
+          <button
+            onClick={() => setShowAdminPanel(true)}
+            className="p-2 rounded-lg hover:bg-secondary/60 transition-colors"
+            title="Group settings"
+          >
+            <Settings className="w-4 h-4 text-muted-foreground" />
+          </button>
+        )}
         <button className="p-2 rounded-lg hover:bg-secondary/60 transition-colors">
           <MoreVertical className="w-4 h-4 text-muted-foreground" />
         </button>
@@ -182,16 +247,16 @@ const ChatView = ({ conversation, onBack }: Props) => {
                       </p>
                     )}
                     <div
-                      className={`relative px-3 py-2 ${
+                      className={`relative ${
                         isMe
                           ? "bg-primary text-primary-foreground rounded-2xl rounded-br-md"
                           : "bg-secondary/80 text-foreground rounded-2xl rounded-bl-md"
-                      }`}
+                      } ${(msg.message_type === "image" || msg.message_type === "chart" || msg.message_type === "video") && msg.media_url ? "p-1" : "px-3 py-2"}`}
                     >
                       {(msg.message_type === "image" || msg.message_type === "chart") && msg.media_url && (
                         <div className="relative">
                           {msg.message_type === "chart" && (
-                            <div className="flex items-center gap-1 mb-1">
+                            <div className="flex items-center gap-1 px-2 pt-1.5 mb-0.5">
                               <BarChart3 className="w-3.5 h-3.5" />
                               <span className="text-[10px] font-semibold uppercase">Chart</span>
                             </div>
@@ -199,29 +264,40 @@ const ChatView = ({ conversation, onBack }: Props) => {
                           <img
                             src={msg.media_url}
                             alt={msg.message_type === "chart" ? "Shared chart" : "Shared image"}
-                            className="rounded-lg max-w-full max-h-64 object-cover mb-1 cursor-pointer"
+                            className="rounded-xl max-w-full max-h-72 object-cover cursor-pointer"
                             loading="lazy"
-                            onClick={() => window.open(msg.media_url!, "_blank")}
+                            onClick={() => setPreviewMedia({ url: msg.media_url!, type: "image" })}
                           />
                         </div>
                       )}
                       {msg.message_type === "video" && msg.media_url && (
-                        <video
-                          src={msg.media_url}
-                          controls
-                          className="rounded-lg max-w-full max-h-64 mb-1"
-                        />
+                        <div className="relative cursor-pointer" onClick={() => setPreviewMedia({ url: msg.media_url!, type: "video" })}>
+                          <video
+                            src={msg.media_url}
+                            className="rounded-xl max-w-full max-h-72 object-cover"
+                            preload="metadata"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center backdrop-blur-sm">
+                              <div className="w-0 h-0 border-l-[16px] border-l-white border-t-[10px] border-t-transparent border-b-[10px] border-b-transparent ml-1" />
+                            </div>
+                          </div>
+                        </div>
                       )}
                       {msg.content && (
-                        <p className="text-[13px] leading-relaxed whitespace-pre-wrap break-words">
+                        <p className={`text-[13px] leading-relaxed whitespace-pre-wrap break-words ${
+                          (msg.message_type !== "text" && msg.media_url) ? "px-2 pt-1" : ""
+                        }`}>
                           {msg.content}
                         </p>
                       )}
-                      <div className={`flex items-center gap-1 mt-0.5 ${isMe ? "justify-end" : "justify-start"}`}>
+                      <div className={`flex items-center gap-1 mt-0.5 ${isMe ? "justify-end" : "justify-start"} ${
+                        (msg.message_type !== "text" && msg.media_url) ? "px-2 pb-1" : ""
+                      }`}>
                         <span className={`text-[9px] ${isMe ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
                           {formatMsgTime(msg.created_at)}
                         </span>
-                        {isMe && <CheckCheck className={`w-3 h-3 text-primary-foreground/60`} />}
+                        {isMe && <CheckCheck className="w-3 h-3 text-primary-foreground/60" />}
                       </div>
                     </div>
                   </div>
@@ -234,32 +310,35 @@ const ChatView = ({ conversation, onBack }: Props) => {
       </div>
 
       {/* Attach Menu */}
-      {showAttachMenu && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="px-3 pb-1 flex gap-2"
-        >
-          <button
-            onClick={() => { fileInputRef.current?.setAttribute("accept", "image/*"); fileInputRef.current?.click(); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary/80 text-foreground text-xs font-medium hover:bg-secondary transition-colors"
+      <AnimatePresence>
+        {showAttachMenu && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="px-3 pb-1 flex gap-2"
           >
-            <ImageIcon className="w-4 h-4 text-primary" /> Image
-          </button>
-          <button
-            onClick={() => { fileInputRef.current?.setAttribute("accept", "video/*"); fileInputRef.current?.click(); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary/80 text-foreground text-xs font-medium hover:bg-secondary transition-colors"
-          >
-            <Video className="w-4 h-4 text-chart-green" /> Video
-          </button>
-          <button
-            onClick={() => chartInputRef.current?.click()}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary/80 text-foreground text-xs font-medium hover:bg-secondary transition-colors"
-          >
-            <BarChart3 className="w-4 h-4 text-chart-amber" /> Chart
-          </button>
-        </motion.div>
-      )}
+            <button
+              onClick={() => { fileInputRef.current?.setAttribute("accept", "image/*"); fileInputRef.current?.click(); }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary/80 text-foreground text-xs font-medium hover:bg-secondary transition-colors"
+            >
+              <ImageIcon className="w-4 h-4 text-primary" /> Image
+            </button>
+            <button
+              onClick={() => { fileInputRef.current?.setAttribute("accept", "video/*"); fileInputRef.current?.click(); }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary/80 text-foreground text-xs font-medium hover:bg-secondary transition-colors"
+            >
+              <Video className="w-4 h-4 text-chart-green" /> Video
+            </button>
+            <button
+              onClick={() => chartInputRef.current?.click()}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary/80 text-foreground text-xs font-medium hover:bg-secondary transition-colors"
+            >
+              <BarChart3 className="w-4 h-4 text-chart-amber" /> Chart
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Input Bar */}
       <div className="px-3 py-2 border-t border-border bg-card/50 backdrop-blur-sm">
