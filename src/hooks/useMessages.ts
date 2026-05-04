@@ -98,7 +98,7 @@ export function useConversations() {
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel("conversations-updates")
+      .channel(`conversations-updates-${user.id}-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
         fetchConversations();
       })
