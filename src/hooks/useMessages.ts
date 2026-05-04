@@ -176,7 +176,7 @@ export function useMessages(conversationId: string | null) {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [conversationId, profiles]);
+  }, [conversationId]);
 
   const sendMessage = useCallback(
     async (content: string, type: string = "text", mediaUrl?: string) => {
