@@ -1,9 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, MessageSquare, ThumbsUp, Share2, TrendingUp, TrendingDown, Flame, Star, Send, Heart, MessageCircle } from "lucide-react";
 import { useState } from "react";
-import ConversationList from "@/components/chat/ConversationList";
-import ChatView from "@/components/chat/ChatView";
-import { useConversations } from "@/hooks/useMessages";
+import MessagesSection from "@/components/chat/MessagesSection";
 
 const trendingTopics = [
   { tag: "#BTC100K", posts: "12.4K", trend: "up" },
@@ -46,10 +44,6 @@ const Community = () => {
   const [postList, setPostList] = useState(posts);
   const [newPost, setNewPost] = useState("");
   const [activeTab, setActiveTab] = useState<"feed" | "messages" | "trending" | "leaderboard">("feed");
-  const [activeConvId, setActiveConvId] = useState<string | null>(null);
-  const [showChatView, setShowChatView] = useState(false);
-
-  const { conversations, loading: convLoading } = useConversations();
 
   const toggleLike = (id: number) => {
     setPostList((prev) =>
@@ -66,12 +60,6 @@ const Community = () => {
     setNewPost("");
   };
 
-  const handleSelectConversation = (id: string) => {
-    setActiveConvId(id);
-    setShowChatView(true);
-  };
-
-  const activeConversation = conversations.find((c) => c.id === activeConvId) || null;
 
   return (
     <div className="flex-1 p-4 md:p-6 space-y-4 md:space-y-6 overflow-auto">
@@ -85,7 +73,7 @@ const Community = () => {
         {(["feed", "messages", "trending", "leaderboard"] as const).map((tab) => (
           <button
             key={tab}
-            onClick={() => { setActiveTab(tab); if (tab !== "messages") setShowChatView(false); }}
+            onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-md text-sm font-medium capitalize transition-all ${
               activeTab === tab ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
             }`}
@@ -95,35 +83,8 @@ const Community = () => {
         ))}
       </motion.div>
 
-      {/* Messages Tab - Telegram-like UI */}
-      {activeTab === "messages" && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card overflow-hidden"
-          style={{ height: "calc(100vh - 240px)", minHeight: "400px" }}
-        >
-          <div className="flex h-full">
-            {/* Conversation List - always visible on desktop, toggleable on mobile */}
-            <div className={`${showChatView ? "hidden md:flex" : "flex"} flex-col w-full md:w-80 lg:w-96 border-r border-border h-full`}>
-              <ConversationList
-                conversations={conversations}
-                loading={convLoading}
-                activeId={activeConvId}
-                onSelect={handleSelectConversation}
-              />
-            </div>
-
-            {/* Chat View */}
-            <div className={`${showChatView ? "flex" : "hidden md:flex"} flex-col flex-1 h-full`}>
-              <ChatView
-                conversation={activeConversation}
-                onBack={() => setShowChatView(false)}
-              />
-            </div>
-          </div>
-        </motion.div>
-      )}
+      {/* Messages Tab - X-style animated section */}
+      {activeTab === "messages" && <MessagesSection />}
 
       {/* Feed / Trending / Leaderboard */}
       {activeTab !== "messages" && (
