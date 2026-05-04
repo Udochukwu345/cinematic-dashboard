@@ -1,9 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, MessageSquare, ThumbsUp, Share2, TrendingUp, TrendingDown, Flame, Star, Send, Heart, MessageCircle } from "lucide-react";
 import { useState } from "react";
-import ConversationList from "@/components/chat/ConversationList";
-import ChatView from "@/components/chat/ChatView";
-import { useConversations } from "@/hooks/useMessages";
+import MessagesSection from "@/components/chat/MessagesSection";
 
 const trendingTopics = [
   { tag: "#BTC100K", posts: "12.4K", trend: "up" },
