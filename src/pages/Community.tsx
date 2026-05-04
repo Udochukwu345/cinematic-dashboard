@@ -73,7 +73,7 @@ const Community = () => {
         {(["feed", "messages", "trending", "leaderboard"] as const).map((tab) => (
           <button
             key={tab}
-            onClick={() => { setActiveTab(tab); if (tab !== "messages") setShowChatView(false); }}
+            onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-md text-sm font-medium capitalize transition-all ${
               activeTab === tab ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
             }`}
