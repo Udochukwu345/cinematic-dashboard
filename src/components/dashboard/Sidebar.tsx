@@ -15,6 +15,7 @@ const links = [
   { to: "/dashboard/news", icon: Newspaper, label: "News" },
   { to: "/dashboard/wallet", icon: Wallet, label: "Wallet" },
   { to: "/dashboard/community", icon: Users, label: "Community" },
+  { to: "/dashboard/messenger", icon: Send, label: "Messenger" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
