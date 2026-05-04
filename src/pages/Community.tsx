@@ -44,10 +44,6 @@ const Community = () => {
   const [postList, setPostList] = useState(posts);
   const [newPost, setNewPost] = useState("");
   const [activeTab, setActiveTab] = useState<"feed" | "messages" | "trending" | "leaderboard">("feed");
-  const [activeConvId, setActiveConvId] = useState<string | null>(null);
-  const [showChatView, setShowChatView] = useState(false);
-
-  const { conversations, loading: convLoading } = useConversations();
 
   const toggleLike = (id: number) => {
     setPostList((prev) =>
