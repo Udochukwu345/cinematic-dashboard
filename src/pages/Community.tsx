@@ -60,12 +60,6 @@ const Community = () => {
     setNewPost("");
   };
 
-  const handleSelectConversation = (id: string) => {
-    setActiveConvId(id);
-    setShowChatView(true);
-  };
-
-  const activeConversation = conversations.find((c) => c.id === activeConvId) || null;
 
   return (
     <div className="flex-1 p-4 md:p-6 space-y-4 md:space-y-6 overflow-auto">
