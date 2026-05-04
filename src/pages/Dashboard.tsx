@@ -14,6 +14,7 @@ import TradeNotes from "@/pages/TradeNotes";
 import News from "@/pages/News";
 import WalletPage from "@/pages/WalletPage";
 import Community from "@/pages/Community";
+import Messenger from "@/pages/Messenger";
 import ProfileSettings from "@/pages/ProfileSettings";
 import MarketChart from "@/pages/MarketChart";
 
@@ -51,6 +52,7 @@ const Dashboard = () => (
         <Route path="news" element={<News />} />
         <Route path="wallet" element={<WalletPage />} />
         <Route path="community" element={<Community />} />
+        <Route path="messenger" element={<Messenger />} />
         <Route path="settings" element={<ProfileSettings />} />
         <Route path="chart" element={<MarketChart />} />
       </Routes>

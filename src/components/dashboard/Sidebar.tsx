@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, BarChart3, LineChart, Briefcase, FileText, Newspaper, Wallet, TrendingUp, Menu, X, LogOut, Users, Settings, CandlestickChart } from "lucide-react";
+import { LayoutDashboard, BarChart3, LineChart, Briefcase, FileText, Newspaper, Wallet, TrendingUp, Menu, X, LogOut, Users, Settings, CandlestickChart, Send } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,7 @@ const links = [
   { to: "/dashboard/news", icon: Newspaper, label: "News" },
   { to: "/dashboard/wallet", icon: Wallet, label: "Wallet" },
   { to: "/dashboard/community", icon: Users, label: "Community" },
+  { to: "/dashboard/messenger", icon: Send, label: "Messenger" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
