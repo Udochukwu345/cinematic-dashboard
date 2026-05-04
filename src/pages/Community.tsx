@@ -83,35 +83,8 @@ const Community = () => {
         ))}
       </motion.div>
 
-      {/* Messages Tab - Telegram-like UI */}
-      {activeTab === "messages" && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card overflow-hidden"
-          style={{ height: "calc(100vh - 240px)", minHeight: "400px" }}
-        >
-          <div className="flex h-full">
-            {/* Conversation List - always visible on desktop, toggleable on mobile */}
-            <div className={`${showChatView ? "hidden md:flex" : "flex"} flex-col w-full md:w-80 lg:w-96 border-r border-border h-full`}>
-              <ConversationList
-                conversations={conversations}
-                loading={convLoading}
-                activeId={activeConvId}
-                onSelect={handleSelectConversation}
-              />
-            </div>
-
-            {/* Chat View */}
-            <div className={`${showChatView ? "flex" : "hidden md:flex"} flex-col flex-1 h-full`}>
-              <ChatView
-                conversation={activeConversation}
-                onBack={() => setShowChatView(false)}
-              />
-            </div>
-          </div>
-        </motion.div>
-      )}
+      {/* Messages Tab - X-style animated section */}
+      {activeTab === "messages" && <MessagesSection />}
 
       {/* Feed / Trending / Leaderboard */}
       {activeTab !== "messages" && (
