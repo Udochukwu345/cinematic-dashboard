@@ -14,6 +14,7 @@ import TradeNotes from "@/pages/TradeNotes";
 import News from "@/pages/News";
 import WalletPage from "@/pages/WalletPage";
 import Community from "@/pages/Community";
+import Messenger from "@/pages/Messenger";
 import ProfileSettings from "@/pages/ProfileSettings";
 import MarketChart from "@/pages/MarketChart";
 
