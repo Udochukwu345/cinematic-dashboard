@@ -117,7 +117,7 @@ const Landing = () => {
             transition={{ delay: 0.8 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/login")}
             className="mt-10 px-10 py-4 rounded-full bg-yellow-400 text-black font-bold text-lg hover:bg-yellow-300 transition-colors"
             style={{ boxShadow: "0 10px 40px -10px rgb(250 204 21 / 0.5)" }}
           >
