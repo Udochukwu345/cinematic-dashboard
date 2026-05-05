@@ -1,5 +1,5 @@
-import Auth from "./Auth";
+import Landing from "./Landing";
 
-const Index = () => <Auth />;
+const Index = () => <Landing />;
 
 export default Index;
