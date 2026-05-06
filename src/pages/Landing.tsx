@@ -111,18 +111,13 @@ const Landing = () => {
             Best trading platform and more reliable financial transactions.
           </motion.p>
 
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.8 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
+          <button
             onClick={() => navigate("/login")}
-            className="mt-10 px-10 py-4 rounded-full bg-yellow-400 text-black font-bold text-lg hover:bg-yellow-300 transition-colors"
+            className="mt-10 px-10 py-4 rounded-full bg-yellow-400 text-black font-bold text-lg hover:bg-yellow-300 transition-colors active:scale-[0.97]"
             style={{ boxShadow: "0 10px 40px -10px rgb(250 204 21 / 0.5)" }}
           >
             Get Started
-          </motion.button>
+          </button>
         </div>
 
         {/* Why Choose */}
