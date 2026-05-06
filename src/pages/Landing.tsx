@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { TrendingUp, Shield, Zap, Users } from "lucide-react";
 
 const features = [
@@ -38,6 +39,7 @@ const stats = [
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -112,7 +114,7 @@ const Landing = () => {
           </motion.p>
 
           <button
-            onClick={() => navigate("/login")}
+            onClick={() => navigate(user ? "/dashboard" : "/login")}
             className="mt-10 px-10 py-4 rounded-full bg-yellow-400 text-black font-bold text-lg hover:bg-yellow-300 transition-colors active:scale-[0.97]"
             style={{ boxShadow: "0 10px 40px -10px rgb(250 204 21 / 0.5)" }}
           >
