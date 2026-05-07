@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, BarChart3, LineChart, Briefcase, FileText, Newspaper, Wallet, TrendingUp, Menu, X, LogOut, Users, Settings, CandlestickChart, Send } from "lucide-react";
+import { LayoutDashboard, BarChart3, LineChart, Briefcase, FileText, Newspaper, Wallet, TrendingUp, Menu, X, LogOut, Users, Settings, CandlestickChart, Send, Building2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
