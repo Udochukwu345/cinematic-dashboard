@@ -13,6 +13,7 @@ const links = [
   { to: "/dashboard/portfolio", icon: Briefcase, label: "Portfolio" },
   { to: "/dashboard/notes", icon: FileText, label: "Trade Notes" },
   { to: "/dashboard/news", icon: Newspaper, label: "News" },
+  { to: "/dashboard/brokers", icon: Building2, label: "Brokers" },
   { to: "/dashboard/wallet", icon: Wallet, label: "Wallet" },
   { to: "/dashboard/community", icon: Users, label: "Community" },
   { to: "/dashboard/messenger", icon: Send, label: "Messenger" },
