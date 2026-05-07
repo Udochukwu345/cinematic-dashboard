@@ -18,6 +18,7 @@ import Messenger from "@/pages/Messenger";
 import ProfileSettings from "@/pages/ProfileSettings";
 import MarketChart from "@/pages/MarketChart";
 import Brokers from "@/pages/Brokers";
+import TradeExecution from "@/pages/TradeExecution";
 
 const DashboardHome = () => (
   <>
@@ -57,6 +58,7 @@ const Dashboard = () => (
         <Route path="settings" element={<ProfileSettings />} />
         <Route path="chart" element={<MarketChart />} />
         <Route path="brokers" element={<Brokers />} />
+        <Route path="trade" element={<TradeExecution />} />
       </Routes>
     </div>
   </div>
