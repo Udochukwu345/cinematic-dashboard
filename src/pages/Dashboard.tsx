@@ -56,6 +56,7 @@ const Dashboard = () => (
         <Route path="messenger" element={<Messenger />} />
         <Route path="settings" element={<ProfileSettings />} />
         <Route path="chart" element={<MarketChart />} />
+        <Route path="brokers" element={<Brokers />} />
       </Routes>
     </div>
   </div>
