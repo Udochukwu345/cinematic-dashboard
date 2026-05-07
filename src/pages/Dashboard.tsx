@@ -17,6 +17,7 @@ import Community from "@/pages/Community";
 import Messenger from "@/pages/Messenger";
 import ProfileSettings from "@/pages/ProfileSettings";
 import MarketChart from "@/pages/MarketChart";
+import Brokers from "@/pages/Brokers";
 
 const DashboardHome = () => (
   <>
