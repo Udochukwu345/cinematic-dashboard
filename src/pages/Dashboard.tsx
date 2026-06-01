@@ -48,7 +48,7 @@ const Dashboard = () => (
         <Route path="news" element={<News />} />
         <Route path="wallet" element={<WalletPage />} />
         <Route path="community" element={<Community />} />
-        <Route path="messenger" element={<Messenger />} />
+        
         <Route path="settings" element={<ProfileSettings />} />
         <Route path="brokers" element={<Brokers />} />
         <Route path="trade" element={<TradeExecution />} />
