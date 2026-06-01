@@ -1,4 +1,3 @@
-import { Search } from "lucide-react";
 import { Routes, Route } from "react-router-dom";
 import Sidebar from "@/components/dashboard/Sidebar";
 import MarketTicker from "@/components/dashboard/MarketTicker";
@@ -8,15 +7,12 @@ import FearGreedIndex from "@/components/dashboard/FearGreedIndex";
 import TopMovers from "@/components/dashboard/TopMovers";
 import RecentTrades from "@/components/dashboard/RecentTrades";
 import Markets from "@/pages/Markets";
-import Portfolio from "@/pages/Portfolio";
-import Analysis from "@/pages/Analysis";
 import TradeNotes from "@/pages/TradeNotes";
 import News from "@/pages/News";
 import WalletPage from "@/pages/WalletPage";
 import Community from "@/pages/Community";
 import Messenger from "@/pages/Messenger";
 import ProfileSettings from "@/pages/ProfileSettings";
-import MarketChart from "@/pages/MarketChart";
 import Brokers from "@/pages/Brokers";
 import TradeExecution from "@/pages/TradeExecution";
 
@@ -48,15 +44,12 @@ const Dashboard = () => (
       <Routes>
         <Route index element={<DashboardHome />} />
         <Route path="markets" element={<Markets />} />
-        <Route path="portfolio" element={<Portfolio />} />
-        <Route path="analysis" element={<Analysis />} />
         <Route path="notes" element={<TradeNotes />} />
         <Route path="news" element={<News />} />
         <Route path="wallet" element={<WalletPage />} />
         <Route path="community" element={<Community />} />
         <Route path="messenger" element={<Messenger />} />
         <Route path="settings" element={<ProfileSettings />} />
-        <Route path="chart" element={<MarketChart />} />
         <Route path="brokers" element={<Brokers />} />
         <Route path="trade" element={<TradeExecution />} />
       </Routes>
