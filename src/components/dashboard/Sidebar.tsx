@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, BarChart3, LineChart, Briefcase, FileText, Newspaper, Wallet, TrendingUp, Menu, X, LogOut, Users, Settings, CandlestickChart, Send, Building2, ArrowLeftRight } from "lucide-react";
+import { LayoutDashboard, BarChart3, FileText, Newspaper, Wallet, TrendingUp, Menu, LogOut, Users, Settings, Send, Building2, ArrowLeftRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -8,10 +8,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 const links = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/dashboard/markets", icon: BarChart3, label: "Markets" },
-  { to: "/dashboard/chart", icon: CandlestickChart, label: "Market Chart" },
   { to: "/dashboard/trade", icon: ArrowLeftRight, label: "Trade" },
-  { to: "/dashboard/analysis", icon: LineChart, label: "Analysis" },
-  { to: "/dashboard/portfolio", icon: Briefcase, label: "Portfolio" },
   { to: "/dashboard/notes", icon: FileText, label: "Trade Notes" },
   { to: "/dashboard/news", icon: Newspaper, label: "News" },
   { to: "/dashboard/brokers", icon: Building2, label: "Brokers" },
