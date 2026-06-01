@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, BarChart3, FileText, Newspaper, Wallet, TrendingUp, Menu, LogOut, Users, Settings, Send, Building2, ArrowLeftRight } from "lucide-react";
+import { LayoutDashboard, BarChart3, FileText, Newspaper, Wallet, TrendingUp, Menu, LogOut, Users, Settings, Building2, ArrowLeftRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +14,6 @@ const links = [
   { to: "/dashboard/brokers", icon: Building2, label: "Brokers" },
   { to: "/dashboard/wallet", icon: Wallet, label: "Wallet" },
   { to: "/dashboard/community", icon: Users, label: "Community" },
-  { to: "/dashboard/messenger", icon: Send, label: "Messenger" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
