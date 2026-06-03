@@ -125,57 +125,52 @@ const Auth = () => {
       const address = accounts[0];
       if (!address) throw new Error("No wallet account returned");
 
-      const nonce = `Sign in to Tradexa\n\nAddress: ${address}\nIssued: ${new Date().toISOString()}`;
+      // 1) Ask the edge function for a SIWE-style challenge
+      toast.message("Requesting sign-in challenge…");
+      const { data: challenge, error: chErr } = await supabase.functions.invoke("wallet-auth", {
+        body: { action: "challenge", address },
+      });
+      if (chErr || !challenge?.message) throw new Error(chErr?.message ?? "Failed to get challenge");
+
+      // 2) Ask the wallet to sign the challenge message
       const signature: string = await eth.request({
         method: "personal_sign",
-        params: [nonce, address],
+        params: [challenge.message, address],
       });
 
-      // Deterministic credentials derived from wallet signature
-      const walletEmail = `${address.toLowerCase()}@wallet.tradexa.app`;
-      // Use a hash of the signature as password (first 32 chars stable enough — but we want stable across sessions,
-      // so we derive password from the address itself + a fixed app secret-style salt embedded client-side.
-      // For real prod, this should go through an edge function to issue a session.
-      const walletPassword = `wallet_${address.toLowerCase()}_tradexa_v1`;
-
-      // Try sign in first
-      let { error } = await supabase.auth.signInWithPassword({
-        email: walletEmail,
-        password: walletPassword,
+      // 3) Send signature back for verification — server returns a one-shot token_hash
+      const { data: verified, error: vErr } = await supabase.functions.invoke("wallet-auth", {
+        body: {
+          action: "verify",
+          address,
+          message: challenge.message,
+          signature,
+          nonce: challenge.nonce,
+          expiresAt: challenge.expiresAt,
+          proof: challenge.proof,
+        },
       });
-
-      if (error) {
-        // First time — create the account
-        const { error: signUpErr } = await supabase.auth.signUp({
-          email: walletEmail,
-          password: walletPassword,
-          options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
-            data: { wallet_address: address, auth_method: "metamask", signature_proof: signature.slice(0, 20) },
-          },
-        });
-        if (signUpErr) throw signUpErr;
-        // Try sign in again (works if email confirmation is disabled)
-        const retry = await supabase.auth.signInWithPassword({
-          email: walletEmail,
-          password: walletPassword,
-        });
-        if (retry.error) {
-          toast.success("Wallet account created!", {
-            description: "Email confirmation may be required by your workspace.",
-          });
-          setSocialLoading(null);
-          return;
-        }
+      if (vErr || !verified?.token_hash) {
+        throw new Error(vErr?.message ?? verified?.error ?? "Signature verification failed");
       }
 
-      toast.success("Wallet connected", { description: `${address.slice(0, 6)}…${address.slice(-4)}` });
+      // 4) Redeem the token_hash to establish a real Supabase session client-side
+      const { error: otpErr } = await supabase.auth.verifyOtp({
+        email: verified.email,
+        token_hash: verified.token_hash,
+        type: "magiclink",
+      });
+      if (otpErr) throw otpErr;
+
+      toast.success("Wallet authenticated", {
+        description: `${address.slice(0, 6)}…${address.slice(-4)}`,
+      });
       navigate("/dashboard");
     } catch (err: any) {
       if (err?.code === 4001 || /reject/i.test(err?.message ?? "")) {
         toast.info("Sign-in cancelled");
       } else {
-        toast.error("MetaMask sign-in failed", { description: err?.message?.slice(0, 120) });
+        toast.error("MetaMask sign-in failed", { description: err?.message?.slice(0, 140) });
       }
     } finally {
       setSocialLoading(null);
