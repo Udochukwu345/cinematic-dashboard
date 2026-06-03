@@ -38,7 +38,11 @@ const MetaMaskIcon = () => (
 );
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const p = new URLSearchParams(window.location.search).get("mode");
+    return p !== "signup";
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
