@@ -113,13 +113,23 @@ const Landing = () => {
             Best trading platform and more reliable financial transactions.
           </motion.p>
 
-          <button
-            onClick={() => navigate(user ? "/dashboard" : "/login")}
-            className="mt-10 px-10 py-4 rounded-full bg-yellow-400 text-black font-bold text-lg hover:bg-yellow-300 transition-colors active:scale-[0.97]"
-            style={{ boxShadow: "0 10px 40px -10px rgb(250 204 21 / 0.5)" }}
-          >
-            Get Started
-          </button>
+          <div className="mt-10 flex flex-wrap gap-3">
+            <button
+              onClick={() => navigate(user ? "/dashboard" : "/login?mode=signup")}
+              className="px-10 py-4 rounded-full bg-yellow-400 text-black font-bold text-lg hover:bg-yellow-300 transition-colors active:scale-[0.97]"
+              style={{ boxShadow: "0 10px 40px -10px rgb(250 204 21 / 0.5)" }}
+            >
+              Get Started
+            </button>
+            {!user && (
+              <button
+                onClick={() => navigate("/login")}
+                className="px-10 py-4 rounded-full bg-white/5 backdrop-blur border border-white/15 text-foreground font-bold text-lg hover:bg-white/10 transition-colors active:scale-[0.97]"
+              >
+                Sign In
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Why Choose */}
