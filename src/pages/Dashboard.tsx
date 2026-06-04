@@ -15,6 +15,7 @@ import Community from "@/pages/Community";
 import ProfileSettings from "@/pages/ProfileSettings";
 import Brokers from "@/pages/Brokers";
 import TradeExecution from "@/pages/TradeExecution";
+import TradingReport from "@/pages/TradingReport";
 
 const DashboardHome = () => (
   <>
@@ -52,6 +53,7 @@ const Dashboard = () => (
         <Route path="settings" element={<ProfileSettings />} />
         <Route path="brokers" element={<Brokers />} />
         <Route path="trade" element={<TradeExecution />} />
+        <Route path="report" element={<TradingReport />} />
       </Routes>
     </div>
   </div>
