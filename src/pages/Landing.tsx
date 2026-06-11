@@ -363,6 +363,10 @@ const Landing = () => {
         </motion.div>
       </section>
 
+      {/* ANIMATED DASHBOARD PREVIEW */}
+      <DashboardPreview />
+
+
       {/* WHY CHOOSE */}
       <section className="relative z-10 max-w-5xl mx-auto px-6 sm:px-12 py-20">
         <motion.h2
