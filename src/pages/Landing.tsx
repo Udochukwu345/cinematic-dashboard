@@ -139,6 +139,299 @@ const TradexaIcon = ({ size = 96 }: { size?: number }) => (
   </div>
 );
 
+// ============== ANIMATED DASHBOARD PREVIEW ==============
+const sparkPoints = [20, 35, 28, 45, 38, 55, 48, 62, 58, 70, 65, 78, 72, 85];
+const sparkPath = sparkPoints
+  .map((y, i) => `${i === 0 ? "M" : "L"} ${(i / (sparkPoints.length - 1)) * 100} ${100 - y}`)
+  .join(" ");
+
+const orderBook = [
+  { price: "67,442.10", size: "0.842", side: "sell" },
+  { price: "67,438.55", size: "1.204", side: "sell" },
+  { price: "67,435.20", size: "0.521", side: "sell" },
+  { price: "67,432.10", size: "2.105", side: "buy" },
+  { price: "67,428.90", size: "0.934", side: "buy" },
+  { price: "67,425.40", size: "1.672", side: "buy" },
+];
+
+const assets = [
+  { sym: "BTC", name: "Bitcoin", price: "67,432", chg: 2.41, color: "#F7931A" },
+  { sym: "ETH", name: "Ethereum", price: "3,521", chg: 1.82, color: "#627EEA" },
+  { sym: "SOL", name: "Solana", price: "182.45", chg: 5.67, color: "#14F195" },
+  { sym: "BNB", name: "Binance", price: "612.34", chg: -0.43, color: "#F3BA2F" },
+];
+
+const DashboardPreview = () => {
+  const [livePrice, setLivePrice] = useState(67432.1);
+  useEffect(() => {
+    const t = setInterval(() => {
+      setLivePrice((p) => p + (Math.random() - 0.5) * 30);
+    }, 1500);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <section className="relative z-10 max-w-6xl mx-auto px-6 sm:px-12 py-24">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="text-center mb-12"
+      >
+        <div
+          className="inline-flex items-center gap-2 px-4 py-1.5 mb-4 rounded-full text-xs font-medium backdrop-blur-sm"
+          style={{ background: `${BLUE}15`, border: `1px solid ${BLUE}40`, color: BLUE }}
+        >
+          <motion.span
+            className="w-1.5 h-1.5 rounded-full bg-green-400"
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          />
+          Live Dashboard Preview
+        </div>
+        <h2 className="font-[DM_Serif_Display] text-3xl sm:text-4xl text-white mb-3">
+          Trade Smarter, Not Harder
+        </h2>
+        <p className="text-white/60 max-w-xl mx-auto">
+          A unified workspace for charts, order books, and your portfolio — all in real time.
+        </p>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 60, rotateX: -10 }}
+        whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1, type: "spring" }}
+        className="relative rounded-3xl p-4 sm:p-6 backdrop-blur-xl"
+        style={{
+          background: "rgba(10, 8, 35, 0.7)",
+          border: `1px solid ${BLUE}40`,
+          boxShadow: `0 40px 100px -20px ${BLUE}60, inset 0 1px 0 rgba(255,255,255,0.05)`,
+        }}
+      >
+        {/* Browser dots */}
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/10">
+          <div className="w-3 h-3 rounded-full bg-red-500/70" />
+          <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
+          <div className="w-3 h-3 rounded-full bg-green-500/70" />
+          <div className="ml-4 text-xs text-white/40 font-mono">tradexa.app/dashboard</div>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-4">
+          {/* Main chart */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+            className="lg:col-span-2 rounded-2xl p-5 relative overflow-hidden"
+            style={{ background: "rgba(5, 8, 25, 0.8)", border: `1px solid ${BLUE}30` }}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="flex items-center gap-2 text-white/60 text-sm">
+                  <span className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: "#F7931A" }}>
+                    ₿
+                  </span>
+                  BTC/USD
+                </div>
+                <motion.div
+                  key={Math.floor(livePrice)}
+                  initial={{ opacity: 0.5, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-3xl sm:text-4xl font-bold text-white mt-2 font-mono"
+                >
+                  ${livePrice.toLocaleString("en-US", { maximumFractionDigits: 2 })}
+                </motion.div>
+                <div className="text-green-400 text-sm mt-1 font-medium">+$1,624.50 (+2.41%)</div>
+              </div>
+              <div className="flex gap-1">
+                {["1H", "1D", "1W", "1M"].map((t, i) => (
+                  <div
+                    key={t}
+                    className="px-2.5 py-1 text-xs rounded-md"
+                    style={{
+                      background: i === 1 ? `${YELLOW}25` : "transparent",
+                      color: i === 1 ? YELLOW : "rgba(255,255,255,0.5)",
+                      border: i === 1 ? `1px solid ${YELLOW}40` : "1px solid transparent",
+                    }}
+                  >
+                    {t}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Chart SVG */}
+            <div className="relative h-48">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
+                <defs>
+                  <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={YELLOW} stopOpacity="0.4" />
+                    <stop offset="100%" stopColor={YELLOW} stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                {/* Grid */}
+                {[0, 25, 50, 75].map((y) => (
+                  <line key={y} x1="0" y1={y} x2="100" y2={y} stroke={BLUE} strokeOpacity="0.1" strokeWidth="0.2" />
+                ))}
+                <motion.path
+                  d={`${sparkPath} L 100 100 L 0 100 Z`}
+                  fill="url(#chartFill)"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 1, duration: 1 }}
+                />
+                <motion.path
+                  d={sparkPath}
+                  fill="none"
+                  stroke={YELLOW}
+                  strokeWidth="0.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  initial={{ pathLength: 0 }}
+                  whileInView={{ pathLength: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 2, ease: "easeOut" }}
+                  vectorEffect="non-scaling-stroke"
+                />
+                {/* Live dot */}
+                <motion.circle
+                  cx="100"
+                  cy={100 - sparkPoints[sparkPoints.length - 1]}
+                  r="1.2"
+                  fill={YELLOW}
+                  animate={{ r: [1.2, 2, 1.2] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                />
+              </svg>
+            </div>
+          </motion.div>
+
+          {/* Order Book */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5 }}
+            className="rounded-2xl p-5"
+            style={{ background: "rgba(5, 8, 25, 0.8)", border: `1px solid ${BLUE}30` }}
+          >
+            <div className="text-white/60 text-sm mb-3 font-medium">Order Book</div>
+            <div className="grid grid-cols-2 text-[10px] text-white/40 mb-2 uppercase tracking-wider">
+              <span>Price</span>
+              <span className="text-right">Size</span>
+            </div>
+            <div className="space-y-1">
+              {orderBook.map((o, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: 10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.6 + i * 0.05 }}
+                  className="relative grid grid-cols-2 text-xs py-1 font-mono"
+                >
+                  <div
+                    className="absolute inset-y-0 right-0 rounded"
+                    style={{
+                      width: `${parseFloat(o.size) * 30}%`,
+                      background: o.side === "buy" ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
+                    }}
+                  />
+                  <span className="relative" style={{ color: o.side === "buy" ? "#22c55e" : "#ef4444" }}>
+                    {o.price}
+                  </span>
+                  <span className="relative text-right text-white/70">{o.size}</span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Portfolio assets row */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.7 }}
+            className="lg:col-span-3 rounded-2xl p-5"
+            style={{ background: "rgba(5, 8, 25, 0.8)", border: `1px solid ${BLUE}30` }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-white/60 text-sm font-medium">Top Assets</div>
+              <div className="text-xs text-white/40">Live</div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {assets.map((a, i) => (
+                <motion.div
+                  key={a.sym}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.8 + i * 0.1 }}
+                  whileHover={{ y: -3, scale: 1.03 }}
+                  className="p-3 rounded-xl"
+                  style={{ background: "rgba(15, 18, 40, 0.8)", border: "1px solid rgba(255,255,255,0.05)" }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                      style={{ background: a.color }}
+                    >
+                      {a.sym[0]}
+                    </div>
+                    <div>
+                      <div className="text-white text-sm font-semibold">{a.sym}</div>
+                      <div className="text-white/40 text-[10px]">{a.name}</div>
+                    </div>
+                  </div>
+                  <div className="text-white font-mono text-sm">${a.price}</div>
+                  <div
+                    className="text-xs font-medium mt-0.5"
+                    style={{ color: a.chg >= 0 ? "#22c55e" : "#ef4444" }}
+                  >
+                    {a.chg >= 0 ? "+" : ""}
+                    {a.chg}%
+                  </div>
+                  {/* mini sparkline */}
+                  <svg viewBox="0 0 100 30" className="w-full h-6 mt-2">
+                    <motion.path
+                      d={`M 0 ${15 + (a.chg < 0 ? 5 : -5)} Q 25 ${10 + Math.random() * 10} 50 ${15} T 100 ${a.chg >= 0 ? 5 : 25}`}
+                      fill="none"
+                      stroke={a.chg >= 0 ? "#22c55e" : "#ef4444"}
+                      strokeWidth="1.5"
+                      initial={{ pathLength: 0 }}
+                      whileInView={{ pathLength: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 1.5, delay: 1 + i * 0.1 }}
+                    />
+                  </svg>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Glow accents */}
+        <motion.div
+          animate={{ opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity }}
+          className="absolute -top-20 -right-20 w-64 h-64 rounded-full blur-3xl pointer-events-none"
+          style={{ background: `radial-gradient(circle, ${YELLOW}40, transparent 70%)` }}
+        />
+        <motion.div
+          animate={{ opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 5, repeat: Infinity }}
+          className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full blur-3xl pointer-events-none"
+          style={{ background: `radial-gradient(circle, ${BLUE}40, transparent 70%)` }}
+        />
+      </motion.div>
+    </section>
+  );
+};
+
+
 const Landing = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
