@@ -210,9 +210,13 @@ export function useMessages(conversationId: string | null) {
 
       if (error) return null;
 
-      const { data } = supabase.storage.from("chat-media").getPublicUrl(path);
-      return data.publicUrl;
+      // Bucket is private — return a long-lived signed URL
+      const { data } = await supabase.storage
+        .from("chat-media")
+        .createSignedUrl(path, 60 * 60 * 24 * 365);
+      return data?.signedUrl ?? null;
     },
+
     [user]
   );
 
